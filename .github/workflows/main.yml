@@ -1,0 +1,43 @@
+name: Delivery Service CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-push-verify:
+    runs-on: ubuntu-latest
+    
+    # Cấp quyền ghi (write) để đẩy image lên GHCR
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout mã nguồn
+        uses: actions/checkout@v3
+
+      - name: Chuyển Username sang chữ thường
+        run: |
+          LOWERCASE_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          echo "REPO_OWNER=$LOWERCASE_OWNER" >> $GITHUB_ENV
+
+      - name: Build Docker Image
+        # Trỏ đường dẫn vào thư mục ./delivery-service
+        run: docker build -t ghcr.io/${{ env.REPO_OWNER }}/delivery-service:latest ./delivery-service
+
+      - name: Đăng nhập vào GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Push Image lên GHCR
+        run: docker push ghcr.io/${{ env.REPO_OWNER }}/delivery-service:latest
+
+      - name: Chạy Container Verify
+        run: docker run -d -p 8080:8080 --name delivery-app ghcr.io/${{ env.REPO_OWNER }}/delivery-service:latest
+
+      - name: Kiểm tra trạng thái
+        run: |
+          sleep 3
+          docker ps | grep delivery-app
