@@ -1,0 +1,19 @@
+                                                                 version: '3.8'
+services:
+  github-runner:
+    image: myoung34/github-runner:latest
+    container_name: dood-runner
+    environment:
+      # Bạn tự thay bằng link repo và token thực tế nhé
+      - REPO_URL=https://github.com/LeHoangViet9/Rikkei_Devops_Session6
+      - RUNNER_TOKEN=BV24C7WWE5T2GJT4DSPBVKDKXUPFO
+    volumes:
+      # Đây là dòng giải quyết yêu cầu của Bài 1:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+
+
+
+
+
+
